@@ -1,0 +1,308 @@
+package com.hcl.bank.servicetest;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.BeansException;
+
+import com.hcl.bank.dto.BenificiaryDTO;
+import com.hcl.bank.dto.BenificiaryRequest;
+import com.hcl.bank.entity.Account;
+import com.hcl.bank.entity.Benificiary;
+import com.hcl.bank.entity.Customer;
+import com.hcl.bank.exception.AccountNotFoundException;
+import com.hcl.bank.exception.BenificiaryNotFoundException;
+import com.hcl.bank.exception.CustomerNotLoggedInException;
+import com.hcl.bank.exception.UserNotFoundException;
+import com.hcl.bank.repository.AccountRepository;
+import com.hcl.bank.repository.BenificiaryRepository;
+import com.hcl.bank.repository.CustomerRepository;
+import com.hcl.bank.service.BenificiaryService;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
+public class TestBenificiary {
+	@Mock
+	private BenificiaryRepository benificiaryRepository;
+	@Mock
+	private CustomerRepository CustomerRepository;
+	@Mock
+	private AccountRepository accountRepository;
+	@InjectMocks
+	private BenificiaryService benificiaryService;
+
+	@Before
+	public void setup() {
+
+	}
+
+	@Test
+	// postive
+	public void addBenificiarypositiveTest()
+			throws BeansException, UserNotFoundException, AccountNotFoundException, CustomerNotLoggedInException {
+		Customer customer = new Customer();
+		customer.setCustomerId(1000L);
+		Benificiary benificiary = new Benificiary();
+
+		benificiary.setBenificiaryAccountNumber(1234L);
+		benificiary.setBenificiaryName("guru");
+		benificiary.setCustomer(customer);
+		Mockito.when(benificiaryRepository.save(benificiary)).thenReturn(benificiary);
+		BenificiaryRequest benificiaryRequest = new BenificiaryRequest();
+		benificiaryRequest.setAccountNumber(1234L);
+		benificiaryRequest.setName("guru");
+		benificiaryRequest.setCustomerId(1000L);
+		
+		Mockito.when(CustomerRepository.findById(1000L)).thenReturn(Optional.of(customer));
+		String response = benificiaryService.addBenificiary(benificiaryRequest);
+		System.out.println(response);
+
+		assertEquals(response, "Benificiary added successfully.");
+
+	}
+
+	@Test
+	public void updateBenificiaryTest()
+			throws BenificiaryNotFoundException, UserNotFoundException, AccountNotFoundException {
+		Customer customer = new Customer();
+		customer.setCustomerId(1000L);
+		Benificiary benificiary = new Benificiary();
+		benificiary.setBenificiaryAccountNumber(1234L);
+		benificiary.setBenificiaryName("guru");
+		benificiary.setCustomer(customer);
+		Account account = new Account();
+		account.setAccountNumber(2345L);
+		BenificiaryDTO benificiaryDTO = new BenificiaryDTO();
+		benificiaryDTO.setCustomerId(1000L);
+		benificiaryDTO.setBenificiaryAccountNumber(2345L);
+		benificiaryDTO.setBenificiaryName("vandna");
+		Mockito.when(CustomerRepository.findById(1000L)).thenReturn(Optional.of(customer));
+		Mockito.when(accountRepository.findByAccountNumber(2345L)).thenReturn(Optional.of(account));
+		Mockito.when(benificiaryRepository.findByCustomerId(1000L)).thenReturn(benificiary);
+		Mockito.when(benificiaryRepository.save(benificiary)).thenReturn(benificiary);
+		String response = benificiaryService.updatedBenificiary(benificiaryDTO);
+		assertEquals(response, "Benificiary updated successfully.");
+
+	}
+
+	@Test
+	public void deleteBenificiaryTest() throws BenificiaryNotFoundException {
+		Benificiary benificiary = new Benificiary();
+		benificiary.setBenificiaryId(10001L);
+		benificiary.setBenificiaryName("guru");
+		benificiary.setBenificiaryAccountNumber(1234L);
+		Mockito.when(benificiaryRepository.findById(10001L)).thenReturn(Optional.of(benificiary));
+		benificiaryRepository.deleteById(benificiary.getBenificiaryId());
+		String response = benificiaryService.deleteBenificiary(10001L);
+		assertEquals(response, "Benificiar Deleted Successfully");
+
+	}
+
+	@Test
+	public void retriveBenificiaryTest() throws BenificiaryNotFoundException {
+		Customer customer = new Customer();
+		customer.setCustomerId(1000L);
+		Benificiary benificiary = new Benificiary();
+		benificiary.setBenificiaryId(10001L);
+		benificiary.setBenificiaryAccountNumber(2000L);
+		benificiary.setBenificiaryName("chandru");
+		benificiary.setCustomer(customer);
+		BenificiaryDTO benificiaryDTO = new BenificiaryDTO();
+		
+		  benificiaryDTO.setBenificiaryAccountNumber(benificiary.getBenificiaryAccountNumber());
+		  benificiaryDTO.setBenificiaryName(benificiary.getBenificiaryName());
+		  benificiaryDTO.setCustomerId(benificiary.getCustomer().getCustomerId());
+		 
+		Mockito.when(benificiaryRepository.findById(10001L)).thenReturn(Optional.of(benificiary));
+		BenificiaryDTO response=benificiaryService.getBenificiaryByBenificiaryId(10001L);
+		assertEquals(response.getBenificiaryName(),"chandru");
+}
+	
+	@Test
+	public void retriveBenificiaryNegativeTest() throws BenificiaryNotFoundException {
+		Customer customer = new Customer();
+		customer.setCustomerId(1000L);
+		Benificiary benificiary = new Benificiary();
+		benificiary.setBenificiaryId(10001L);
+		benificiary.setBenificiaryAccountNumber(2000L);
+		benificiary.setBenificiaryName("chandru");
+		benificiary.setCustomer(customer);
+		BenificiaryDTO benificiaryDTO = new BenificiaryDTO();
+		
+		  benificiaryDTO.setBenificiaryAccountNumber(benificiary.getBenificiaryAccountNumber());
+		  benificiaryDTO.setBenificiaryName(benificiary.getBenificiaryName());
+		  benificiaryDTO.setCustomerId(benificiary.getCustomer().getCustomerId());
+		 
+		Mockito.when(benificiaryRepository.findById(10001L)).thenReturn(Optional.of(benificiary));
+		BenificiaryDTO response=benificiaryService.getBenificiaryByBenificiaryId(10001L);
+		assertNotEquals(response.getBenificiaryName(),"guru");
+}
+
+}
+
+
+
+
+FundTransfer:
+
+package com.hcl.bank.servicetest;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import javax.naming.InsufficientResourcesException;
+
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import com.hcl.bank.dto.FundTransferdto;
+import com.hcl.bank.entity.Account;
+import com.hcl.bank.entity.FundTransfer;
+import com.hcl.bank.entity.Transaction;
+import com.hcl.bank.exception.AccountNotFoundException;
+import com.hcl.bank.repository.AccountRepository;
+import com.hcl.bank.repository.FundTransferRepository;
+import com.hcl.bank.service.FundService;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
+public class TestFundTransfer {
+	@Mock
+	private AccountRepository accountRepository;
+	@Mock
+	private FundTransferRepository fundTransferRepository;
+	@InjectMocks
+	private FundService fundService;
+
+	@Test
+	public void fundTransferTest() throws InsufficientResourcesException, AccountNotFoundException {
+		Account account1 = new Account();
+		account1.setAccountId(1L);
+		account1.setAccountNumber(123L);
+		account1.setAvailableBalance(10000.0);
+		account1.setIfscCode("123fs");
+		Account account2 = new Account();
+		account2.setAccountId(2L);
+		account2.setAccountNumber(1234L);
+		account2.setAvailableBalance(20000.0);
+		account2.setIfscCode("1234fs");
+		FundTransferdto fundTransferdto = new FundTransferdto();
+		fundTransferdto.setFromAccount(123L);
+		fundTransferdto.setToAccount(1234L);
+		fundTransferdto.setAmount(1000.0);
+		fundTransferdto.setDescription("deposit");
+		Mockito.when(accountRepository.findByAccountNumber(fundTransferdto.getFromAccount()))
+				.thenReturn(Optional.of(account1));
+		Mockito.when(accountRepository.findByAccountNumber(fundTransferdto.getToAccount()))
+				.thenReturn(Optional.of(account2));
+
+		List<Transaction> fromtransactionList = new ArrayList<Transaction>();
+		Transaction fromTransaction = new Transaction();
+		fromTransaction.setAmount(fundTransferdto.getAmount());
+		fromTransaction.setTransactionDateTime(new Date());
+		fromTransaction.setTransactionStatus("success");
+		fromTransaction.setTransactionDescription(fundTransferdto.getDescription());
+		fromTransaction.setTransactionType("debited");
+		fromtransactionList.add(fromTransaction);
+		account1.setTransaction(fromtransactionList);
+		fromTransaction.setAccounts(account1);
+		accountRepository.save(account1);
+
+		List<Transaction> totransactionList = new ArrayList<Transaction>();
+		Transaction toTransaction = new Transaction();
+		toTransaction.setAmount(fundTransferdto.getAmount());
+		toTransaction.setTransactionDateTime(new Date());
+		toTransaction.setTransactionStatus("success");
+		toTransaction.setTransactionDescription(fundTransferdto.getDescription());
+		toTransaction.setTransactionType("credited");
+		totransactionList.add(toTransaction);
+		account2.setTransaction(totransactionList);
+		toTransaction.setAccounts(account1);
+		accountRepository.save(account2);
+
+		FundTransfer fundTransfer = new FundTransfer(account1.getAccountNumber(), fundTransferdto.getAmount(),
+				account2.getAccountNumber());
+		Mockito.when(fundTransferRepository.save(fundTransfer)).thenReturn(fundTransfer);
+		String response=fundService.fundTransfer(fundTransferdto);
+		assertEquals("Transaction successful", response);
+
+	}
+	@Test
+	public void TestInsufficientResourcesException() throws InsufficientResourcesException, AccountNotFoundException {
+		Account account1 = new Account();
+		account1.setAccountId(1L);
+		account1.setAccountNumber(123L);
+		account1.setAvailableBalance(10000.0);
+		account1.setIfscCode("123fs");
+		Account account2 = new Account();
+		account2.setAccountId(2L);
+		account2.setAccountNumber(1234L);
+		account2.setAvailableBalance(20000.0);
+		account2.setIfscCode("1234fs");
+		FundTransferdto fundTransferdto = new FundTransferdto();
+		fundTransferdto.setFromAccount(123L);
+		fundTransferdto.setToAccount(1234L);
+		fundTransferdto.setAmount(100000.0);
+		fundTransferdto.setDescription("deposit");
+		Mockito.when(accountRepository.findByAccountNumber(fundTransferdto.getFromAccount()))
+				.thenReturn(Optional.of(account1));
+		Mockito.when(accountRepository.findByAccountNumber(fundTransferdto.getToAccount()))
+				.thenReturn(Optional.of(account2));
+
+		List<Transaction> fromtransactionList = new ArrayList<Transaction>();
+		Transaction fromTransaction = new Transaction();
+		fromTransaction.setAmount(fundTransferdto.getAmount());
+		fromTransaction.setTransactionDateTime(new Date());
+		fromTransaction.setTransactionStatus("success");
+		fromTransaction.setTransactionDescription(fundTransferdto.getDescription());
+		fromTransaction.setTransactionType("debited");
+		fromtransactionList.add(fromTransaction);
+		account1.setTransaction(fromtransactionList);
+		fromTransaction.setAccounts(account1);
+		accountRepository.save(account1);
+
+		List<Transaction> totransactionList = new ArrayList<Transaction>();
+		Transaction toTransaction = new Transaction();
+		toTransaction.setAmount(fundTransferdto.getAmount());
+		toTransaction.setTransactionDateTime(new Date());
+		toTransaction.setTransactionStatus("success");
+		toTransaction.setTransactionDescription(fundTransferdto.getDescription());
+		toTransaction.setTransactionType("credited");
+		totransactionList.add(toTransaction);
+		account2.setTransaction(totransactionList);
+		toTransaction.setAccounts(account1);
+		accountRepository.save(account2);
+
+		FundTransfer fundTransfer = new FundTransfer(account1.getAccountNumber(), fundTransferdto.getAmount(),
+				account2.getAccountNumber());
+		Mockito.when(fundTransferRepository.save(fundTransfer)).thenReturn(fundTransfer);
+		//String response=fundService.fundTransfer(fundTransferdto);
+
+		//Assertions.assertThrows(InsufficientResourcesException.class, fundService.fundTransfer(fundTransferdto),"Insufficient fund exception");
+		assertThrows(InsufficientResourcesException.class,()->{fundService.fundTransfer(fundTransferdto);});
+	}
+	
+
+}
+
